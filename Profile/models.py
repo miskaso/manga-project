@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 
 class Profile(models.Model):
-    name = models.ForeignKey(User, on_delete=models.CASCADE())
+    name = models.ForeignKey(User, on_delete=models.CASCADE)
     bio = models.TextField()
     avatar = models.ImageField()
     fon = models.ImageField()
@@ -15,6 +15,6 @@ class Profile(models.Model):
 
 
 class Notification(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE())
-    manga_id = models.ForeignKey(Manga, on_delete=models.CASCADE())
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    manga_id = models.IntegerField()
     description = models.CharField(max_length=100, default='Вышла новая глава!')
