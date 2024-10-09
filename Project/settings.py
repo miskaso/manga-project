@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'Manga',
     'Reviews',
     'rest_framework',
+    'Fiches',
+    'Fav_recom',
 
 ]
 
