@@ -8,6 +8,7 @@ from Manga.models import Manga
 class Profile(models.Model):
     name = models.ForeignKey(User, on_delete=models.CASCADE)
     bio = models.TextField()
+    year = models.IntegerField()
     avatar = models.ImageField(upload_to='images/')
     fon = models.ImageField(upload_to='images/')
 
