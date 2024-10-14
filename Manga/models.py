@@ -30,6 +30,7 @@ class Author(models.Model):
 
 class Manga(models.Model):
     title = models.CharField(max_length=100)
+    year = models.DateField()
     description = models.TextField()
     img = models.ImageField(upload_to='images/')
     chapters = models.IntegerField()

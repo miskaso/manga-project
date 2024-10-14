@@ -6,7 +6,7 @@ from Manga.models import Manga
 
 
 class Profile(models.Model):
-    name = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField()
     year = models.IntegerField()
     avatar = models.ImageField(upload_to='images/')
@@ -20,3 +20,5 @@ class Notification(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     manga_id = models.ForeignKey(Manga, on_delete=models.CASCADE)
     description = models.CharField(max_length=100, default='Вышла новая глава!')
+
+
