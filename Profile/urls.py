@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-from .views import MyProfile, Register
+from .views import MyProfile, Register, LogoutView
 from rest_framework.routers import DefaultRouter
 
 
@@ -10,6 +10,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('myprof/', MyProfile.as_view(), name='profile'),
     path('register/', Register.as_view(), name='register'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 
 
 ]
