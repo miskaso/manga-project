@@ -1,13 +1,14 @@
-from django.shortcuts import render
-from .models import Author, Manga, Category, Tag
-from .serializers import MangaSerializer, SearchSerializer
+from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
-from django.db.models import Q
+
+from .models import Manga
+from .serializers import MangaSerializer
+
 
 # Create your views here.
 
-
+# Создаем класс для редакта админам и просмотра обычным юзерам
 class IsAdminOrRead(BasePermission):
     def has_permission(self, request, view):
         if request.method in ['POST', 'PUT', 'DELETE']:
@@ -15,16 +16,11 @@ class IsAdminOrRead(BasePermission):
         return True
 
 
-class ShowManga(viewsets.ModelViewSet):
-    queryset = Manga.objects.all()
-    serializer_class = MangaSerializer
-
-    permission_classes = [IsAdminOrRead]
-
-
+# просмотр тайтлов и поиск
 class SearchView(viewsets.ModelViewSet):
-    serializer_class = SearchSerializer
+    serializer_class = MangaSerializer
     queryset = Manga.objects.all()
+    permission_classes = [IsAdminOrRead]
 
     def get_queryset(self):
         manga = self.request.query_params.get('title')
@@ -33,21 +29,22 @@ class SearchView(viewsets.ModelViewSet):
         tags = self.request.query_params.get('tags')
         category = self.request.query_params.get('category')
 
+        queryset = super().get_queryset()
         filters = Q()
 
         if manga:
             filters &= Q(title__icontains=manga)
         if author:
-            filters &= Q(author__icontains=author)
+            filters &= Q(author__name__icontains=author)
         if year:
             filters &= Q(year__year=year)
         if tags:
-            filters &= Q(tags__icontains=tags)
+            filters &= Q(tags__tag__icontains=tags)
         if category:
-            filters &= Q(category__icontains=category)
+            filters &= Q(category__category__icontains=category)
 
         # Если фильтры не заданы, возвращаем все результаты
         if filters:
-            queryset = queryset.filter(filters)
+            queryset = queryset.filter(filters).order_by('desc')
 
         return queryset

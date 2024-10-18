@@ -5,8 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 router = DefaultRouter()
 
-router.register(r'show', views.ShowManga)
-router.register(r'search', views.SearchView)
+router.register(r'show', views.SearchView, basename='showmanga')
 
 
 urlpatterns = [

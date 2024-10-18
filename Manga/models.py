@@ -33,7 +33,7 @@ class Manga(models.Model):
     year = models.DateField()
     description = models.TextField()
     img = models.ImageField(upload_to='images/')
-    chapters = models.IntegerField()
+    chapters = models.FileField(upload_to='files/')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     tags = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
