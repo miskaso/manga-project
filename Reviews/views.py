@@ -27,3 +27,4 @@ class PopularView(viewsets.ReadOnlyModelViewSet):
     serializer_class = PopularSerializer
 
     permission_classes = [AllowAny]
+
