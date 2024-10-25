@@ -8,3 +8,5 @@ from django.db import models
 class Favorite(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     manga_id = models.ForeignKey(Manga, on_delete=models.CASCADE)
+
+

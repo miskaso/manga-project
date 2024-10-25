@@ -33,3 +33,12 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Манга: {self.manga}, Юзер: {self.user}'
+
+
+class Popular(models.Model):
+    manga = models.OneToOneField(Manga, on_delete=models.CASCADE)
+    check_count = models.IntegerField()
+
+    def __str__(self):
+        return f'{self.manga}, {self.check_count}'
+
