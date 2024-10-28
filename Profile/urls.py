@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-from .views import MyProfile, Register, LogoutView
+from .views import MyProfile, Register, LogoutView, ProfileView
 from rest_framework.routers import DefaultRouter
 
 
@@ -11,6 +11,7 @@ urlpatterns = [
     path('myprof/', MyProfile.as_view(), name='profile'),
     path('register/', Register.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('prof/', ProfileView.as_view(), name='viewprof'),
 
 
 ]

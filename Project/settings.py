@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'Fav_recom',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg',
 
 ]
 
@@ -76,6 +77,8 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+LOGIN_REDIRECT_URL = '/profile/'
 
 ROOT_URLCONF = 'Project.urls'
 
