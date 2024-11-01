@@ -4,9 +4,10 @@ from rest_framework.permissions import BasePermission
 
 from .models import Manga
 from .serializers import MangaSerializer
-
+from Reviews.models import Popular
 
 # Create your views here.
+
 
 # Создаем класс для редакта админам и просмотра обычным юзерам
 class IsAdminOrRead(BasePermission):
@@ -28,6 +29,9 @@ class SearchView(viewsets.ModelViewSet):
         year = self.request.query_params.get('year')
         tags = self.request.query_params.get('tags')
         category = self.request.query_params.get('category')
+        popular = self.request.query_params.get('popular')
+
+        popular_obj = Popular.objects.all()
 
         queryset = super().get_queryset()
         filters = Q()
@@ -46,5 +50,9 @@ class SearchView(viewsets.ModelViewSet):
         # Если фильтры не заданы, возвращаем все результаты
         if filters:
             queryset = queryset.filter(filters).order_by('desc')
+
+        if popular:
+            filters &= Q(popular__popular__icontains=popular)
+            queryset = popular_obj.filter(filters).order_by('desc')
 
         return queryset
