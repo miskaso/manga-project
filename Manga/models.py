@@ -37,6 +37,10 @@ class Manga(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     tags = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
+    top = models.IntegerField(default=0)
+    average_rating = models.FloatField(default=0.0)
+    rating_count = models.IntegerField(default=0)
+    popularity = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

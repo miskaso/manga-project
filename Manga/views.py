@@ -1,10 +1,12 @@
-from django.db.models import Q
+from Reviews.models import Popular
+from django.db.models import Q, F
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
+from rest_framework.response import Response
 
 from .models import Manga
 from .serializers import MangaSerializer
-from Reviews.models import Popular
+
 
 # Create your views here.
 
@@ -17,11 +19,17 @@ class IsAdminOrRead(BasePermission):
         return True
 
 
-# просмотр тайтлов и поиск
 class SearchView(viewsets.ModelViewSet):
     serializer_class = MangaSerializer
     queryset = Manga.objects.all()
     permission_classes = [IsAdminOrRead]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.popularity += 1
+        instance.save(update_fields=['popularity'])  # Оптимизация сохранения
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def get_queryset(self):
         manga = self.request.query_params.get('title')
@@ -29,30 +37,50 @@ class SearchView(viewsets.ModelViewSet):
         year = self.request.query_params.get('year')
         tags = self.request.query_params.get('tags')
         category = self.request.query_params.get('category')
-        popular = self.request.query_params.get('popular')
-
-        popular_obj = Popular.objects.all()
+        top = self.request.query_params.get('top')
 
         queryset = super().get_queryset()
-        filters = Q()
+        filters = []
 
+        # Фильтрация по параметрам
         if manga:
-            filters &= Q(title__icontains=manga)
+            filters.append(Q(title__icontains=manga))
         if author:
-            filters &= Q(author__name__icontains=author)
+            filters.append(Q(author__name__icontains=author))
         if year:
-            filters &= Q(year__year=year)
+            filters.append(Q(year__year=year))
         if tags:
-            filters &= Q(tags__tag__icontains=tags)
+            filters.append(Q(tags__tag__icontains=tags))
         if category:
-            filters &= Q(category__category__icontains=category)
+            filters.append(Q(category__category__icontains=category))
 
-        # Если фильтры не заданы, возвращаем все результаты
         if filters:
-            queryset = queryset.filter(filters).order_by('desc')
+            combined_filters = Q()
+            for condition in filters:
+                combined_filters &= condition
+            queryset = queryset.filter(combined_filters)
 
-        if popular:
-            filters &= Q(popular__popular__icontains=popular)
-            queryset = popular_obj.filter(filters).order_by('desc')
+        # Рассчет рейтинга и аннотирование
+        queryset = queryset.annotate(
+            calculated_rating=(
+                F('average_rating') * 0.5 +
+                F('rating_count') * 0.2 +
+                F('popularity') * 0.3
+            )
+        )
 
+        # Фильтрация по рейтингу, если задан параметр top
+        if top:
+            str(top)
+            if top == '':
+                queryset = queryset.filter(calculated_rating__gte=top)
+                # Сортировка по рассчитанному рейтингу
+                queryset = queryset.order_by('-calculated_rating')
+                return queryset
+            else:
+                try:
+                    queryset = queryset.filter(top=top)
+                except ValueError:
+                    queryset = queryset.filter(top=top)
         return queryset
+
