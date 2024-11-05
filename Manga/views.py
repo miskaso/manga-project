@@ -27,7 +27,7 @@ class SearchView(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.popularity += 1
-        instance.save(update_fields=['popularity'])  # Оптимизация сохранения
+        instance.save(update_fields=['popularity'])
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -38,8 +38,15 @@ class SearchView(viewsets.ModelViewSet):
         tags = self.request.query_params.get('tags')
         category = self.request.query_params.get('category')
         top = self.request.query_params.get('top')
+        new = self.request.query_params.get('new')
 
         queryset = super().get_queryset()
+
+        # Фильтрация по новизне
+        if new:
+            queryset = queryset.order_by('-id')
+            return queryset
+
         filters = []
 
         # Фильтрация по параметрам
@@ -59,28 +66,27 @@ class SearchView(viewsets.ModelViewSet):
             for condition in filters:
                 combined_filters &= condition
             queryset = queryset.filter(combined_filters)
+        else:
+            # Рассчет рейтинга и аннотирование
+            queryset = queryset.annotate(
+                calculated_rating=(
+                    F('average_rating') * 0.5 +
+                    F('rating_count') * 0.2 +
+                    F('popularity') * 0.3
+                )
+            ).order_by('-calculated_rating')
 
-        # Рассчет рейтинга и аннотирование
-        queryset = queryset.annotate(
-            calculated_rating=(
-                F('average_rating') * 0.5 +
-                F('rating_count') * 0.2 +
-                F('popularity') * 0.3
-            )
-        )
+            # Обновление значений top
+            for index, manga in enumerate(queryset, start=1):
+                if manga.top != index:
+                    manga.top = index
+                    manga.save(update_fields=['top'])
 
-        # Фильтрация по рейтингу, если задан параметр top
-        if top:
-            str(top)
-            if top == '':
-                queryset = queryset.filter(calculated_rating__gte=top)
-                # Сортировка по рассчитанному рейтингу
-                queryset = queryset.order_by('-calculated_rating')
-                return queryset
+            # Фильтрация по top, если указан
+            if top:
+                queryset = queryset.filter(top=int(top))
             else:
-                try:
-                    queryset = queryset.filter(top=top)
-                except ValueError:
-                    queryset = queryset.filter(top=top)
+                queryset = queryset.order_by('top')
+
         return queryset
 
