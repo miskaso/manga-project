@@ -7,18 +7,36 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Profile
+from .models import Profile, Notification
 from .serializers import ProfileSerializer, UserSerializer
+from Manga.models import Manga, ChapterModel
+from Fav_recom.models import Favorite
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 
-# Create your views here.
+@receiver(post_save, sender=ChapterModel)
+def create_chapter_notification(sender, instance, created, **kwargs):
+    if created:
+        manga = instance.manga  # Получаем мангу, к которой относится эта глава
+        # Получаем список пользователей, подписанных на эту мангу
+        users = Favorite.objects.filter(manga=manga).values_list('user', flat=True)
+        # Перебираем всех подписанных пользователей и создаём для них уведомления
+        for user_id in users:
+            user = User.objects.get(id=user_id)
+            # Создаём уведомление для каждого подписчика
+            Notification.objects.create(
+                user=user,
+                manga=manga,
+                description=f'Вышла новая глава "{instance.title}" в манге "{manga.title}".'
+            )
 
 
 class MyProfile(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = ProfileSerializer
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 class ProfileView(APIView):
@@ -60,3 +78,4 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+

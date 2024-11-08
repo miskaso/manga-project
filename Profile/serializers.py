@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Profile
+from .models import Profile, Notification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -57,3 +57,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.year = validated_data.get('year', instance.year)
         instance.save()  # Сохраняем изменения профиля
         return instance
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['manga.title', 'description', 'data']

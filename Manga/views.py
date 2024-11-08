@@ -19,11 +19,13 @@ class IsAdminOrRead(BasePermission):
         return True
 
 
+# Создаем вьюшку для отображения, фильтрации и учета манги.
 class SearchView(viewsets.ModelViewSet):
     serializer_class = MangaSerializer
     queryset = Manga.objects.all()
     permission_classes = [IsAdminOrRead]
 
+    # При детальном просмотре конкретной манги обновляем счетчик популярности
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.popularity += 1
@@ -31,6 +33,7 @@ class SearchView(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    # Фильтрация и подсчет рейтинга.
     def get_queryset(self):
         manga = self.request.query_params.get('title')
         author = self.request.query_params.get('author')

@@ -25,7 +25,7 @@ class Author(models.Model):
     bio = models.TextField()
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
 
 
 class Manga(models.Model):
@@ -33,7 +33,6 @@ class Manga(models.Model):
     year = models.DateField()
     description = models.TextField()
     img = models.ImageField(upload_to='images/')
-    chapters = models.FileField(upload_to='files/')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     tags = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
@@ -43,4 +42,15 @@ class Manga(models.Model):
     popularity = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.title
+        return f'{self.title}'
+
+
+class ChapterModel(models.Model):
+    title = models.CharField(max_length=255)
+    data = models.DateTimeField(auto_now=True)
+    manga = models.ForeignKey(Manga, on_delete=models.CASCADE)
+    content = models.FileField(upload_to='files/')
+
+    def __str__(self):
+        return f'{self.title}, {self.manga}'
+
