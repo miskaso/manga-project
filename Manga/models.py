@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 
-
+# Модель категорий
 class Category(models.Model):
     category = models.CharField(max_length=255)
 
@@ -11,6 +11,7 @@ class Category(models.Model):
         return self.category
 
 
+# Модель тегов
 class Tag(models.Model):
     tag = models.CharField(max_length=100)
 
@@ -18,6 +19,7 @@ class Tag(models.Model):
         return self.tag
 
 
+# Модель авторов
 class Author(models.Model):
     name = models.CharField(max_length=255)
     lastname = models.CharField(max_length=255)
@@ -28,6 +30,7 @@ class Author(models.Model):
         return f'{self.name}'
 
 
+# модель манги
 class Manga(models.Model):
     title = models.CharField(max_length=100)
     year = models.DateField()
@@ -45,6 +48,7 @@ class Manga(models.Model):
         return f'{self.title}'
 
 
+# Модель глав манги
 class ChapterModel(models.Model):
     title = models.CharField(max_length=255)
     data = models.DateTimeField(auto_now=True)

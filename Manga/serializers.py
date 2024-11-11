@@ -26,7 +26,3 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SearchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Manga
-        exclude = ['img', 'chapters', 'description']

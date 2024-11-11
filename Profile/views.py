@@ -6,13 +6,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
-from .models import Profile, Notification
-from .serializers import ProfileSerializer, UserSerializer
+from rest_framework import viewsets
+from .models import Profile, Notification, Role
+from .serializers import ProfileSerializer, UserSerializer, RoleSerializer
 from Manga.models import Manga, ChapterModel
 from Fav_recom.models import Favorite
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from .permissions import HasRolePermission
+
+
+class RoleViewSet(viewsets.ModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+
+    permission_classes = [HasRolePermission]
 
 
 @receiver(post_save, sender=ChapterModel)

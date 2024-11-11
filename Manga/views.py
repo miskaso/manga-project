@@ -4,11 +4,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 
-from .models import Manga
-from .serializers import MangaSerializer
-
-
-# Create your views here.
+from .models import Manga, Author, Category, Tag
+from .serializers import MangaSerializer, AuthorSerializer, CategorySerializer, TagSerializer
 
 
 # Создаем класс для редакта админам и просмотра обычным юзерам
@@ -31,6 +28,7 @@ class SearchView(viewsets.ModelViewSet):
         instance.popularity += 1
         instance.save(update_fields=['popularity'])
         serializer = self.get_serializer(instance)
+
         return Response(serializer.data)
 
     # Фильтрация и подсчет рейтинга.
@@ -93,3 +91,81 @@ class SearchView(viewsets.ModelViewSet):
 
         return queryset
 
+
+# вьюшка для отображения списка авторов и их детального просмотра
+class AuthorView(viewsets.ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+
+    permission_classes = [IsAdminOrRead]
+
+    def get_queryset(self):
+        name = self.request.query_params.get('name')
+        lastname = self.request.query_params.get('lastname')
+
+        queryset = super().get_queryset()
+
+        filters = []
+        if name:
+            filters.append(Q(name__icontains=name))
+        if lastname:
+            filters.append(Q(lastname__icontains=lastname))
+
+        if filters:
+            combined_filters = Q()
+            for condition in filters:
+                combined_filters &= condition
+            queryset = queryset.filter(combined_filters)
+
+        return queryset
+
+
+# Вьюшка под вывод категорий
+class CategoryView(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    permission_classes = [IsAdminOrRead]
+
+    def get_queryset(self):
+        category = self.request.query_params.get('category')
+
+        queryset = super().get_queryset()
+
+        filters = []
+        if category:
+            filters.append(Q(category__icontains=category))
+
+        if filters:
+            combined_filters = Q()
+            for condition in filters:
+                combined_filters &= condition
+            queryset = queryset.filter(combined_filters)
+
+        return queryset
+
+
+# вьюшка под теги
+class TagsView(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+    permission_classes = [IsAdminOrRead]
+
+    def get_queryset(self):
+        tag = self.request.query_params.get('tag')
+
+        queryset = super().get_queryset()
+
+        filters = []
+
+        if tag:
+            filters.append(Q(tag__icontains=tag))
+
+        if filters:
+            combined_filters = Q()
+            for condition in filters:
+                combined_filters &= condition
+            queryset = queryset.filter(combined_filters)
+
+        return queryset

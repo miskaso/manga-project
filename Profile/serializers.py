@@ -1,6 +1,20 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Profile, Notification
+from .models import Profile, Notification, Role, UserRole
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'name', 'description']
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    role = RoleSerializer()
+
+    class Meta:
+        model = UserRole
+        fields = ['user', 'role']
 
 
 class UserSerializer(serializers.ModelSerializer):
