@@ -1,12 +1,10 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-from .views import MyProfile, Register, LogoutView, ProfileView, RoleViewSet
+from .views import (MyProfile, Register, LogoutView, ProfileView,
+                    AssignGroupView)
 from rest_framework.routers import DefaultRouter
 
-
 router = DefaultRouter()
-router.register(r'roles', RoleViewSet, basename='roles')
-
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -17,5 +15,6 @@ urlpatterns = [
     path('register/', Register.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('prof/', ProfileView.as_view(), name='viewprof'),
+    path('assign-role/', AssignGroupView.as_view(), name='assign_role'),
 
 ]

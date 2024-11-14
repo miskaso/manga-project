@@ -54,6 +54,7 @@ class ChapterModel(models.Model):
     data = models.DateTimeField(auto_now=True)
     manga = models.ForeignKey(Manga, on_delete=models.CASCADE)
     content = models.FileField(upload_to='files/')
+    premium = models.BooleanField()
 
     def __str__(self):
         return f'{self.title}, {self.manga}'

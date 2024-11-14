@@ -1,4 +1,4 @@
-from .models import Author, Category, Tag, Manga
+from .models import Author, Category, Tag, Manga, ChapterModel
 from rest_framework import serializers
 
 
@@ -26,3 +26,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ChapterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChapterModel
+        exclude = ['data']

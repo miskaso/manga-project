@@ -3,9 +3,10 @@ from django.db.models import Q, F
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
-
-from .models import Manga, Author, Category, Tag
-from .serializers import MangaSerializer, AuthorSerializer, CategorySerializer, TagSerializer
+from rest_framework.exceptions import PermissionDenied
+from .models import Manga, Author, Category, Tag, ChapterModel
+from .serializers import (MangaSerializer, AuthorSerializer,
+                          CategorySerializer, TagSerializer, ChapterSerializer)
 
 
 # Создаем класс для редакта админам и просмотра обычным юзерам
@@ -169,3 +170,45 @@ class TagsView(viewsets.ModelViewSet):
             queryset = queryset.filter(combined_filters)
 
         return queryset
+
+
+class ChapterView(viewsets.ModelViewSet):
+    queryset = ChapterModel.objects.all()
+    serializer_class = ChapterSerializer
+    permission_classes = [IsAdminOrRead]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Проверка, является ли глава премиум
+        if instance.premium:
+            # Проверка, состоит ли пользователь в группе 'premium'
+            if not self.request.user.groups.filter(name='premium').exists():
+                raise PermissionDenied(
+                    'У вас недостаточно прав для просмотра этой главы.')
+
+        # Если доступ есть, отправляем данные
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        title = self.request.query_params.get('title')
+        manga = self.request.query_params.get('manga')
+        premium = self.request.query_params.get('premium')
+        date = self.request.query_params.get('date')
+
+        queryset = super().get_queryset()
+
+        # Фильтрация глав
+        filters = Q()
+
+        if title:
+            filters &= Q(title__icontains=title)
+        if manga:
+            filters &= Q(manga__icontains=manga)
+        if premium:
+            filters &= Q(premium=premium)
+        if date:
+            filters &= Q(data__icontains=date)
+
+        return queryset.filter(filters) if filters else queryset
