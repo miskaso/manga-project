@@ -1,6 +1,31 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Profile, Notification
+import random
+from twilio.rest import Client
+from django.conf import settings
+
+
+def generate_verification_code():
+    return str(random.randint(100000, 999999))
+
+
+def send_verification_sms(phone_number, code):
+    account_sid = settings.TWILIO_ACCOUNT_SID
+    auth_token = settings.TWILIO_AUTH_TOKEN
+    twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+
+    client = Client(account_sid, auth_token)
+    try:
+        message = client.messages.create(
+            body=f"Ваш код для верификации: {code}",
+            from_=twilio_phone_number,
+            to=phone_number
+        )
+        print(f"SMS sent to {phone_number}. SID: {message.sid}")
+    except Exception as e:
+        print(f"Failed to send SMS: {e}")
+        raise Exception("Failed to send SMS")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,37 +51,34 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    name = UserSerializer()
-
     class Meta:
         model = Profile
-        fields = ['name', 'bio', 'year']
+        fields = ['bio', 'year', 'telephone']
 
     def create(self, validated_data):
-        user_data = validated_data.pop('name')  # Извлекаем данные для пользователя
-        user = UserSerializer.create(UserSerializer(), validated_data=user_data)  # Создаем пользователя
-        profile = Profile.objects.create(name=user, **validated_data)  # Создаем профиль
+        """
+        Создает профиль текущего пользователя.
+        """
+        # Извлекаем текущего пользователя из контекста
+        user = self.context['request'].user
+
+        # Удаляем из данных возможный конфликтующий аргумент 'name'
+        validated_data.pop('name', None)
+
+        # Генерируем верификационный код (если нужно)
+        verification_code = generate_verification_code()
+
+        # Создаем профиль
+        profile = Profile.objects.create(
+            name=user,
+            verification_token=verification_code,
+            **validated_data
+        )
+
+        # Отправляем SMS с кодом
+        send_verification_sms(profile.telephone, verification_code)
+
         return profile
-
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop('name', None)  # Извлекаем данные для пользователя
-        if user_data:
-            user_serializer = UserSerializer(instance.name, data=user_data, partial=True)
-            user_serializer.is_valid(raise_exception=True)
-
-            if 'password' in user_data:
-                instance.name.set_password(user_data['password'])
-
-            if 'email' in user_data:
-                instance.name.email = user_data['email']
-
-            user_serializer.save()  # Сохраняем изменения пользователя
-
-        # Обновляем поля профиля
-        instance.bio = validated_data.get('bio', instance.bio)
-        instance.year = validated_data.get('year', instance.year)
-        instance.save()  # Сохраняем изменения профиля
-        return instance
 
 
 class NotificationSerializer(serializers.ModelSerializer):

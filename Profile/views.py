@@ -14,6 +14,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 
 # Редактирование групп у пользователей
@@ -80,49 +81,69 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, user):
+
         return Profile.objects.filter(name=user).first()
 
     def get(self, request, *args, **kwargs):
-        # Получаем пользователя, чей профиль нужно показать
+
         if 'username' in kwargs:
             user = get_object_or_404(User, username=kwargs['username'])
         else:
-            user = request.user  # Если не передан username, показываем профиль текущего пользователя
+            user = request.user  # Профиль текущего пользователя
 
         profile = self.get_queryset(user)
         if not profile:
-            return Response({"error": "Profile not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.serializer_class(profile)
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        # Проверка, существует ли уже профиль для текущего пользователя
-        profile = self.get_queryset(request.user)
+        """
+        Создает или обновляет профиль текущего пользователя.
+        """
+        user = request.user
+        profile = self.get_queryset(user)
 
         if profile:
-            # Если профиль существует, проверяем, что запрос отправляет сам владелец
-            if profile.name != request.user:
-                return Response(
-                    {"error": "You can only edit your own profile."},
-                    status=status.HTTP_403_FORBIDDEN)
-
-            # Если профиль существует, редактируем его
-            serializer = self.serializer_class(profile, data=request.data,
-                                               partial=True)
+            # Обновление существующего профиля
+            serializer = self.serializer_class(profile, data=request.data, partial=True)
             if serializer.is_valid():
-                serializer.save()  # Обновляем профиль
+                serializer.save()  # Сохраняем изменения профиля
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Если профиль не существует, создаем новый
-        serializer = self.serializer_class(data=request.data)
+        # Создание нового профиля
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(name=request.user)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerifySMSView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        phone_number = request.data.get('telephone')
+        code = request.data.get('code')
+
+        if not phone_number or not code:
+            raise ValidationError({"Ошибка": "Телефон или код не могут быть пустыми."})
+
+        try:
+            profile = Profile.objects.get(telephone=phone_number)
+        except Profile.DoesNotExist:
+            raise NotFound({"Ошибка": "Такого пользователя не существует."})
+
+        if profile.verification_token != code:
+            raise ValidationError({"Ошибка": "Неверный код."})
+
+        profile.verification = True
+        profile.verification_token = None
+        profile.save()
+
+        return Response({"message": "Phone number successfully verified."}, status=status.HTTP_200_OK)
 
 
 # Регистрация

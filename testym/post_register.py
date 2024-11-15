@@ -1,13 +1,14 @@
 import requests
 
-url = "http://127.0.0.1:8000/profile/api/token/"
+url = "http://127.0.0.1:8000/api/auth/registration/"
 
 data = {
-    "username": "tyda",
-    "password": "tyda1234"
+    "username": "ty342da",
+    "password1": "t2yweda14sS",
+    "password2": "t2yweda14sS"
 }
 response = requests.post(url, json=data)
-if response.status_code == 200:
+if response.status_code == 201:
     access = response.json().get('access')
     headers = {
         "Authorization": f"Bearer {access}"

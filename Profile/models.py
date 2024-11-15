@@ -8,9 +8,14 @@ from Manga.models import Manga
 class Profile(models.Model):
     name = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField()
+    telephone = models.CharField(max_length=255)
     year = models.IntegerField()
     avatar = models.ImageField(upload_to='images/')
     fon = models.ImageField(upload_to='images/')
+    money = models.PositiveIntegerField(default=0)
+    verification = models.BooleanField(default=False)
+    verification_token = models.CharField(max_length=255,blank=True,null=True)
+    verification_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.name}'
