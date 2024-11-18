@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from .views import (MyProfile, Register, LogoutView, ProfileView,
-                    AssignGroupView, VerifySMSView)
+                    AssignGroupView, VerifySMSView, pay_account)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -17,5 +17,6 @@ urlpatterns = [
     path('prof/', ProfileView.as_view(), name='viewprof'),
     path('assign-role/', AssignGroupView.as_view(), name='assign_role'),
     path('verify-sms/', VerifySMSView.as_view(), name='verify-sms'),
+    path('pay/', pay_account, name='pay'),
 
 ]

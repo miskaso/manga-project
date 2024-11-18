@@ -15,6 +15,7 @@ from django.db.models.signals import post_save
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.decorators import api_view
 
 
 # Редактирование групп у пользователей
@@ -168,3 +169,22 @@ class LogoutView(APIView):
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+def pay_account(request):
+    # Извлекаем 'money' из тела запроса
+    money = request.data.get('money')
+
+    if not money or not str(money).isdigit():
+        return Response({'error': 'Некорректная сумма'}, status=400)
+
+    money = int(money)  # Преобразуем в число
+
+    # Получаем профиль текущего пользователя
+    profile = get_object_or_404(Profile, name=request.user.id)
+
+    # Обновляем баланс
+    profile.money += money
+    profile.save()
+
+    return Response({'message': 'Баланс обновлен'}, status=200)

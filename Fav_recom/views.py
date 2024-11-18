@@ -11,3 +11,7 @@ class FavoriteView(viewsets.ModelViewSet):
     serializer_class = FavoriteSerializer
 
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return self.queryset
+
