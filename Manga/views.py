@@ -1,5 +1,6 @@
 from Reviews.models import Popular
-from django.db.models import Q, F
+from Fav_recom.models import Favorite
+from django.db.models import Q, F, Count
 from rest_framework import viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
@@ -34,6 +35,9 @@ class SearchView(viewsets.ModelViewSet):
 
     # Фильтрация и подсчет рейтинга.
     def get_queryset(self):
+        """
+        Фильтрует и сортирует мангу на основе разных фильтров
+        """
         manga = self.request.query_params.get('title')
         author = self.request.query_params.get('author')
         year = self.request.query_params.get('year')
@@ -41,8 +45,39 @@ class SearchView(viewsets.ModelViewSet):
         category = self.request.query_params.get('category')
         top = self.request.query_params.get('top')
         new = self.request.query_params.get('new')
+        recom = self.request.query_params.get('recom')
 
         queryset = super().get_queryset()
+
+        # Если запрос на рекомендации
+        if recom and self.request.user.is_authenticated:
+            # Получаем избранное пользователя
+            favorite = Favorite.objects.filter(user=self.request.user)
+
+            # Подсчет популярных категорий
+            popular_categories = Favorite.objects.values('manga__category') \
+                .annotate(category_count=Count('manga__category')) \
+                .order_by('-category_count')
+
+            # Подсчет популярных тегов
+            popular_tags = Favorite.objects.values('manga__tags') \
+                .annotate(tag_count=Count('manga__tags')) \
+                .order_by('-tag_count')
+
+            # Извлекаем наиболее популярные категории и теги
+            top_categories = [entry['manga__category'] for entry in
+                              popular_categories]
+            top_tags = [entry['manga__tags'] for entry in popular_tags]
+
+            # Фильтруем мангу по наиболее популярным категориям и тегам
+            queryset = queryset.filter(category__in=top_categories)
+
+            # Для тегов используем фильтрацию по множеству тегов
+            queryset = queryset.filter(tags__in=top_tags)
+
+            # Возвращаем отсортированный queryset
+            return queryset
+
 
         # Фильтрация по новизне
         if new:

@@ -18,6 +18,39 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.decorators import api_view
 
 
+class BuyPremium(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        profile = Profile.objects.get(name=user)
+        if user.groups.filter(name='premium').exists():
+            raise ValidationError({"error": "У вас уже есть премиум подписка."})
+
+        # Проверяем баланс
+        if profile.money < 500:
+            raise ValidationError({"error": "Недостаточно монет"})
+
+
+        try:
+            # Получаем группу 'premium'
+            group = Group.objects.get(name='premium')
+        except Group.DoesNotExist:
+            return Response({"error": "Группа 'premium' не найдена"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Списываем монеты
+        profile.money -= 500
+        profile.save()
+
+        # Добавляем пользователя в группу
+        user.groups.add(group)
+
+        return Response(
+            {"message": "Вы успешно купили премиум доступ."},
+            status=status.HTTP_201_CREATED
+        )
+
+
 # Редактирование групп у пользователей
 class AssignGroupView(APIView):
     # Ограничиваем доступ только для администраторов
@@ -76,7 +109,7 @@ class MyProfile(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-# росмотр профиля и его редактирование
+# Просмотр профиля и его редактирование
 class ProfileView(APIView):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]

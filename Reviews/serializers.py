@@ -12,7 +12,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['manga', 'rating', 'message']
+        fields = '__all__'
 
 
 class PopularSerializer(serializers.ModelSerializer):
