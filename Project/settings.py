@@ -54,37 +54,27 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework.authtoken',
-
 ]
 
 SITE_ID = 1
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
+
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': '857064090234-tordcpb60ifr6ljosv9p66nk8s2h2uuo.apps.googleusercontent.com',
-            'secret': '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',
-            'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'REDIRECT_URI': 'https://5c16-31-192-250-119.ngrok-free.app/api/social/google/login/callback/',
-    }
-}
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://5c16-31-192-250-119.ngrok-free.app",
@@ -106,6 +96,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware'
+
 ]
 
 SIMPLE_JWT = {
@@ -184,6 +175,32 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+# Настройки для dj-rest-auth
+REST_USE_JWT = True
+
+# Настройки для Google
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+    }
+}
+
+SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+    'client_id': '857064090234-tordcpb60ifr6ljosv9p66nk8s2h2uuo.apps.googleusercontent.com',
+    'secret': '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',
+    'key': '',
+}
+
+
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
