@@ -4,7 +4,7 @@ import func
 # Получаем экземпляр
 one = func.one
 
-# комментарии и отзывы имеют полную фильтрацию
+# ------------ комментарии и отзывы имеют полную фильтрацию -----------
 
 
 # Добавить комментарий
@@ -20,6 +20,9 @@ one = func.one
 # # Удалить комментарий
 # one.api_del('/reviews/comments/1/')
 
+# # Фильтрация комментариев по манге
+# one.api_get('/reviews/comments/?manga_id=1')
+
 
 # # Добавить отзыв
 # data = {
@@ -30,11 +33,7 @@ one = func.one
 # one.api_post(data, '/reviews/comments/')
 #
 
-# # Фильтрация по манге
-# one.api_get('/reviews/comments/?manga_id=1')
-
-
-# # # Получить все отзывы
+# # Получить все отзывы
 # one.api_get('/reviews/review/')
 
 

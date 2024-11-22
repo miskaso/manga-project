@@ -127,22 +127,8 @@ class BuildApi:
 #     print(response.text, response.status_code)
 
 
-# Создам экземпляр класса
+# Создам экземпляр класса и сразу логинимся
 one = BuildApi()
 two = BuildApi(login='ownerS', password='t2yweda14sSa32')
 
 
-
-# # оставить отзыв
-# data = {
-#     "manga": 2,
-#     "rating": '5',
-#     "message": "Отличная манга, мне понравилась!"
-# }
-# one.api_post(data, '/reviews/review/')
-
-
-# # Получить избранную мангу
-# one.api_get('/reviews/popular/')
-#
-#
